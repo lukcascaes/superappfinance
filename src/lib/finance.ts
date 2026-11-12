@@ -77,7 +77,9 @@ export function vehicleSummary(occs: Occurrence[], vehicleId: string) {
 export function waLink(phone: string | undefined, text: string) {
   const digits = (phone ?? '').replace(/\D/g, '');
   const num = digits ? (digits.startsWith('55') ? digits : `55${digits}`) : '';
-  return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
+  // api.whatsapp.com directly: the wa.me redirect mangles emoji in the text.
+  const params = new URLSearchParams(num ? { phone: num, text } : { text });
+  return `https://api.whatsapp.com/send?${params.toString().replace(/\+/g, '%20')}`;
 }
 
 /** Fleet plan: R$100 with 1 vehicle included, R$50 per additional vehicle. */

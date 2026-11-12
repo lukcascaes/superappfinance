@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#121212"/>
+      <stop offset="0.5" stop-color="#050505"/>
+      <stop offset="1" stop-color="#161616"/>
+    </linearGradient>
+    <linearGradient id="band" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.01"/>
+    </linearGradient>
+    <linearGradient id="z" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cfcfcf"/>
+    </linearGradient>
+    <linearGradient id="flag" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9a9a9a"/>
+      <stop offset="1" stop-color="#4f4f4f"/>
+    </linearGradient>
+    <clipPath id="clip"><rect width="1254" height="1254" rx="270"/></clipPath>
+  </defs>
+  <g clip-path="url(#clip)">
+    <rect width="1254" height="1254" fill="url(#bg)"/>
+    <path d="M930 0 L1254 0 L1254 180 L1090 300 Q1050 322 1000 322 L570 322 Q640 300 700 240 Z" fill="url(#band)"/>
+    <path d="M0 1254 L0 1080 L380 930 Q440 905 520 905 L960 905 Q900 930 840 990 L560 1254 Z" fill="url(#band)"/>
+    <path d="M1254 690 L1254 1254 L1000 1254 L1120 1130 Z" fill="#ffffff" fill-opacity="0.025"/>
+  </g>
+  <g fill="url(#flag)">
+    <path d="M425 432 H565 L505 503 Q495 518 470 518 H342 Z"/>
+    <path d="M240 522 H338 L278 592 Q268 605 245 605 H168 Z"/>
+    <path d="M318 607 H486 L426 680 Q414 693 392 693 H254 Z"/>
+  </g>
+  <path fill="url(#z)" d="M625 432 H1018 Q1068 432 1052 470 Q1040 492 1008 512 L705 690 H1045 L948 760 Q918 783 880 783 H392 L455 725 Q485 698 520 680 L828 520 H545 Z"/>
+</svg>

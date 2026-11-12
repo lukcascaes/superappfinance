@@ -7,7 +7,7 @@ import { useStore } from '../lib/store';
 import type { CategoryId } from '../lib/types';
 
 export function Logo({ size = 32 }: { size?: number }) {
-  return <img src={`${import.meta.env.BASE_URL}logo.svg`} width={size} height={size} alt="" className="logo" />;
+  return <img src={`${import.meta.env.BASE_URL}icons/icon.svg`} width={size} height={size} alt="" className="logo" />;
 }
 
 export function MonthPicker() {

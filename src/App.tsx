@@ -38,7 +38,31 @@ export default function App() {
 
   return (
     <div className="app">
+      <aside className="sidebar">
+        <div className="brand">
+          <Logo size={40} />
+          <div>
+            <span className="brand-name">lucky<b>zorts</b></span>
+            <span className="brand-sub">finance</span>
+          </div>
+        </div>
+        <button className="btn btn-primary" onClick={() => openEntry()}><Plus size={18} /> Novo lançamento</button>
+        <nav className="side-nav">
+          {nav.map((n) => {
+            const Icon = n.icon;
+            return (
+              <button key={n.id} className={`side-btn ${tab === n.id ? 'active' : ''}`} onClick={() => setTab(n.id)}
+                aria-current={tab === n.id ? 'page' : undefined}>
+                <Icon size={20} strokeWidth={tab === n.id ? 2.4 : 1.9} /> {n.label}
+              </button>
+            );
+          })}
+        </nav>
+        <p className="side-foot">{greeting()} 👋<br />MVP v0.1</p>
+      </aside>
+
       <header className="topbar">
+        <h1 className="page-title">{nav.find((n) => n.id === tab)?.label}</h1>
         <div className="brand">
           <Logo size={34} />
           <div>

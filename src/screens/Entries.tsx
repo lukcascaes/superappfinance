@@ -39,6 +39,7 @@ export function Entries({ openEntry }: { openEntry: (e?: Entry) => void }) {
         <div><small>{s.result >= 0 ? 'Positivo' : 'Negativo'}</small><strong className={s.result >= 0 ? 'pos' : 'neg'}>{brl(s.result)}</strong></div>
       </div>
 
+      <div className="toolbar">
       <label className="search">
         <Search size={16} />
         <input placeholder="Buscar lançamento ou veículo" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -54,15 +55,16 @@ export function Entries({ openEntry }: { openEntry: (e?: Entry) => void }) {
           { value: 'pending', label: 'Pendentes' },
         ]}
       />
+      </div>
 
       {list.length === 0 ? (
         <Empty icon={<ReceiptText size={26} />} title="Nada por aqui" text="Nenhum lançamento encontrado com esse filtro."
           action={<button className="btn btn-primary" onClick={() => openEntry()}>Novo lançamento</button>} />
       ) : (
-        <>
+        <div className="groups">
           {ins.length > 0 && <Group title="Entradas" occs={ins} openEntry={openEntry} />}
           {outs.length > 0 && <Group title="Saídas" occs={outs} openEntry={openEntry} />}
-        </>
+        </div>
       )}
     </div>
   );
