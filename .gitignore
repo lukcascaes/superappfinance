@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# luckyzortsfinance
+node_modules
+dist
+*.local
+*.tsbuildinfo

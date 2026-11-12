@@ -1,0 +1,9 @@
+{
+  "name": "luckyzortsfinance",
+  "short_name": "luckyzorts",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#07100d",
+  "theme_color": "#07100d",
+  "icons": [{ "src": "logo.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
