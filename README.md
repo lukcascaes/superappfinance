@@ -21,7 +21,7 @@ Os dados ficam no `localStorage` do navegador. Os dados de exemplo podem ser res
 
 ## Stack
 
-React 19 + TypeScript + Vite, CSS puro, ícones `lucide-react`. Deploy no GitHub Pages pelo workflow em `.github/workflows/deploy.yml`.
+React 19 + TypeScript + Vite, CSS puro, ícones `lucide-react`. Deploy no GitHub Pages: o workflow em `.github/workflows/deploy.yml` compila e publica no branch `gh-pages` (Settings → Pages → Deploy from a branch → `gh-pages` / root).
 
 ## Próximos passos
 
