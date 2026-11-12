@@ -2,10 +2,12 @@ import { Check } from 'lucide-react';
 import { brl } from '../lib/format';
 import { useStore } from '../lib/store';
 import type { Occurrence } from '../lib/types';
+import { useToast } from './Toast';
 import { CatIcon } from './ui';
 
 export function EntryRow({ occ, onOpen, showVehicle = true }: { occ: Occurrence; onOpen: () => void; showVehicle?: boolean }) {
   const { state, dispatch } = useStore();
+  const toast = useToast();
   const e = occ.entry;
   const vehicle = showVehicle && e.vehicleId ? state.vehicles.find((v) => v.id === e.vehicleId) : undefined;
   const today = new Date();
@@ -34,7 +36,11 @@ export function EntryRow({ occ, onOpen, showVehicle = true }: { occ: Occurrence;
       </button>
       <button
         className={`check ${occ.paid ? 'on' : ''} ${e.kind}`}
-        onClick={() => dispatch({ type: 'togglePaid', key: occ.key })}
+        onClick={() => {
+          const before = state;
+          dispatch({ type: 'togglePaid', key: occ.key });
+          toast(occ.paid ? `${e.title}: voltou para pendente` : `${e.title}: ${e.kind === 'in' ? 'recebido' : 'pago'}`, before);
+        }}
         aria-label={occ.paid ? 'Desmarcar' : e.kind === 'in' ? 'Marcar como recebido' : 'Marcar como pago'}
         title={occ.paid ? (e.kind === 'in' ? 'Recebido' : 'Pago') : 'Pendente'}
       >

@@ -1,9 +1,11 @@
 import { ArrowDownLeft, ArrowUpRight, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { CATEGORIES } from '../lib/categories';
-import { uid } from '../lib/format';
+import { isRecurring } from '../lib/finance';
+import { monthLabel, uid } from '../lib/format';
 import { useStore } from '../lib/store';
-import type { Entry, Kind, Repeat } from '../lib/types';
+import type { Entry, Kind, Repeat, Scope } from '../lib/types';
+import { useToast } from './Toast';
 import { MoneyInput, Segmented, Sheet } from './ui';
 
 export function EntrySheet({ open, onClose, entry, defaults }: {
@@ -14,10 +16,16 @@ export function EntrySheet({ open, onClose, entry, defaults }: {
     id: uid(), ws: state.ws, kind: 'out', title: '', amount: 0, category: 'outros_out',
     day: new Date().getDate(), startMonth: state.month, repeat: 'once', ...defaults,
   });
+  const toast = useToast();
   const [draft, setDraft] = useState<Entry>(entry ?? blank());
+  const [scope, setScope] = useState<Scope>('future');
+  const recurring = !!entry && isRecurring(entry);
 
   useEffect(() => {
-    if (open) setDraft(entry ?? blank());
+    if (open) {
+      setDraft(entry ?? blank());
+      setScope('future');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, entry]);
 
@@ -30,15 +38,24 @@ export function EntrySheet({ open, onClose, entry, defaults }: {
 
   const save = () => {
     if (!valid) return;
-    dispatch({
-      type: 'upsertEntry',
-      entry: {
-        ...draft,
-        title: draft.title.trim(),
-        day: Math.min(31, Math.max(1, draft.day || 1)),
-        installments: draft.repeat === 'installments' ? Math.max(2, draft.installments ?? 2) : undefined,
-      },
-    });
+    const clean: Entry = {
+      ...draft,
+      title: draft.title.trim(),
+      day: Math.min(31, Math.max(1, draft.day || 1)),
+      installments: draft.repeat === 'installments' ? Math.max(2, draft.installments ?? 2) : undefined,
+    };
+    const before = state;
+    if (entry) dispatch({ type: 'editEntry', original: entry, draft: clean, scope: recurring ? scope : 'all' });
+    else dispatch({ type: 'upsertEntry', entry: clean });
+    toast(entry ? 'Alterações salvas' : 'Lançamento adicionado', before);
+    onClose();
+  };
+
+  const remove = () => {
+    if (!entry) return;
+    const before = state;
+    dispatch({ type: 'deleteEntry', entry, scope: recurring ? scope : 'all' });
+    toast(recurring && scope === 'only' ? `Removido de ${monthLabel(state.month)}` : 'Lançamento excluído', before);
     onClose();
   };
 
@@ -94,6 +111,7 @@ export function EntrySheet({ open, onClose, entry, defaults }: {
         )}
       </div>
 
+      {!(recurring && scope === 'only') && (
       <div className="field">
         <label>Repetição</label>
         <Segmented<Repeat>
@@ -106,8 +124,9 @@ export function EntrySheet({ open, onClose, entry, defaults }: {
           ]}
         />
       </div>
+      )}
 
-      {draft.repeat === 'installments' && (
+      {draft.repeat === 'installments' && !(recurring && scope === 'only') && (
         <div className="field">
           <label htmlFor="f-inst">Número de parcelas</label>
           <div className="stepper">
@@ -123,9 +142,29 @@ export function EntrySheet({ open, onClose, entry, defaults }: {
         </div>
       )}
 
+      {recurring && (
+        <div className="field scope-field">
+          <label>Aplicar alterações e exclusão em</label>
+          <Segmented<Scope>
+            value={scope}
+            onChange={setScope}
+            options={[
+              { value: 'only', label: 'Só este mês' },
+              { value: 'future', label: 'Este e próximos' },
+              { value: 'all', label: 'Todos' },
+            ]}
+          />
+          <small className="hint">
+            {scope === 'only' && `Só ${monthLabel(state.month)} muda; os outros meses ficam como estão.`}
+            {scope === 'future' && `De ${monthLabel(state.month)} em diante; os meses anteriores ficam como estão.`}
+            {scope === 'all' && 'Todos os meses, inclusive os que já passaram.'}
+          </small>
+        </div>
+      )}
+
       <div className="sheet-actions">
         {entry && (
-          <button className="btn btn-danger-ghost" onClick={() => { dispatch({ type: 'deleteEntry', id: entry.id }); onClose(); }}>
+          <button className="btn btn-danger-ghost" onClick={remove}>
             <Trash2 size={16} /> Excluir
           </button>
         )}

@@ -5,6 +5,7 @@ import { brl, km, monthLabel, uid } from '../lib/format';
 import { useStore } from '../lib/store';
 import type { Entry, Vehicle } from '../lib/types';
 import { EntryRow } from './EntryRow';
+import { useToast } from './Toast';
 import { Plate, Progress, Sheet } from './ui';
 
 const STATUS_TEXT = { ok: 'Em dia', soon: 'Revisão chegando', late: 'Revisão vencida' } as const;
@@ -13,6 +14,7 @@ export function VehicleDetailSheet({ vehicle, onClose, onEdit, onOpenEntry }: {
   vehicle?: Vehicle; onClose: () => void; onEdit: (v: Vehicle) => void; onOpenEntry: (e: Entry) => void;
 }) {
   const { state, dispatch } = useStore();
+  const toast = useToast();
   const [kmInput, setKmInput] = useState('');
   useEffect(() => {
     setKmInput(vehicle ? String(vehicle.km) : '');
@@ -29,7 +31,9 @@ export function VehicleDetailSheet({ vehicle, onClose, onEdit, onOpenEntry }: {
     if (!v) return;
     const n = Number(kmInput.replace(/\D/g, ''));
     if (!n) return;
+    const before = state;
     dispatch({ type: 'upsertVehicle', vehicle: { ...v, km: n, kmUpdatedAt: new Date().toISOString() } });
+    toast(`KM atualizado: ${km(n)}`, before);
   };
 
   return (
@@ -61,7 +65,7 @@ export function VehicleDetailSheet({ vehicle, onClose, onEdit, onOpenEntry }: {
               <button className="btn btn-secondary" onClick={updateKm}>Atualizar KM</button>
             </div>
             <div className="btn-grid">
-              <button className="btn btn-ghost" onClick={() => dispatch({ type: 'upsertVehicle', vehicle: { ...v, lastServiceKm: v.km } })}>
+              <button className="btn btn-ghost" onClick={() => { const before = state; dispatch({ type: 'upsertVehicle', vehicle: { ...v, lastServiceKm: v.km } }); toast('Revisão registrada', before); }}>
                 <Wrench size={16} /> Revisão feita
               </button>
               <a className="btn btn-whats" target="_blank" rel="noreferrer"
@@ -108,6 +112,7 @@ export function VehicleFormSheet({ open, vehicle, onClose, onDeleted }: {
   open: boolean; vehicle?: Vehicle; onClose: () => void; onDeleted?: () => void;
 }) {
   const { state, dispatch } = useStore();
+  const toast = useToast();
   const blank = (): Vehicle => ({
     id: uid(), ws: state.ws, name: '', plate: '', color: COLORS[0], km: 0, kmUpdatedAt: new Date().toISOString(),
     lastServiceKm: 0, serviceIntervalKm: 10000,
@@ -179,7 +184,7 @@ export function VehicleFormSheet({ open, vehicle, onClose, onDeleted }: {
       )}
       <div className="sheet-actions">
         {vehicle && (
-          <button className="btn btn-danger-ghost" onClick={() => { dispatch({ type: 'deleteVehicle', id: vehicle.id }); onDeleted?.(); onClose(); }}>
+          <button className="btn btn-danger-ghost" onClick={() => { const before = state; dispatch({ type: 'deleteVehicle', id: vehicle.id }); toast(`${vehicle.name} excluído`, before); onDeleted?.(); onClose(); }}>
             <Trash2 size={16} /> Excluir
           </button>
         )}

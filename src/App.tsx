@@ -1,20 +1,23 @@
-import { CarFront, House, LayoutGrid, Plus, ReceiptText } from 'lucide-react';
+import { CarFront, FlaskConical, House, LayoutGrid, Plus, ReceiptText } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { EntrySheet } from './components/EntrySheet';
+import { useToast } from './components/Toast';
 import { Logo, Segmented } from './components/ui';
 import { VehicleDetailSheet, VehicleFormSheet } from './components/VehicleSheets';
 import { greeting } from './lib/format';
-import { useStore } from './lib/store';
+import { emptyState, useStore } from './lib/store';
 import type { Entry, Vehicle, Workspace } from './lib/types';
 import { Entries } from './screens/Entries';
 import { Fleet } from './screens/Fleet';
 import { Home } from './screens/Home';
+import { Onboarding } from './screens/Onboarding';
 import { Plans } from './screens/Plans';
 
 type Tab = 'home' | 'entries' | 'fleet' | 'plans';
 
 export default function App() {
   const { state, dispatch } = useStore();
+  const toast = useToast();
   const [tab, setTab] = useState<Tab>('home');
   const [entrySheet, setEntrySheet] = useState<{ open: boolean; entry?: Entry; defaults?: Partial<Entry> }>({ open: false });
   const [detail, setDetail] = useState<Vehicle | undefined>();
@@ -35,6 +38,15 @@ export default function App() {
     { id: 'fleet', label: state.ws === 'frota' ? 'Frota' : 'Veículos', icon: CarFront },
     { id: 'plans', label: 'Planos', icon: LayoutGrid },
   ];
+
+  if (!state.onboarded) return <Onboarding />;
+
+  const startEmpty = () => {
+    const before = state;
+    dispatch({ type: 'reset', state: emptyState(state.ws) });
+    setTab('home');
+    toast('Dados de exemplo apagados', before);
+  };
 
   return (
     <div className="app">
@@ -78,6 +90,13 @@ export default function App() {
       </header>
 
       <main key={`${tab}-${state.ws}`} className="main">
+        {state.demo && (
+          <div className="demo-banner">
+            <FlaskConical size={16} />
+            <span className="grow">Você está vendo <b>dados de exemplo</b>.</span>
+            <button onClick={startEmpty}>Começar do zero</button>
+          </div>
+        )}
         {tab === 'home' && <Home openEntry={openEntry} openVehicle={setDetail} goTo={setTab} />}
         {tab === 'entries' && <Entries openEntry={openEntry} />}
         {tab === 'fleet' && <Fleet openVehicle={setDetail} newVehicle={() => setVehForm({ open: true })} />}

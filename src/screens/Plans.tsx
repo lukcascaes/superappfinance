@@ -2,7 +2,8 @@ import { Bell, CalendarClock, Check, Download, Handshake, MessageCircle, RotateC
 import { useState } from 'react';
 import { fleetPrice } from '../lib/finance';
 import { brl } from '../lib/format';
-import { useStore } from '../lib/store';
+import { useToast } from '../components/Toast';
+import { demoState, emptyState, useStore } from '../lib/store';
 
 const ROADMAP = [
   { icon: Wallet, title: 'Cobrança automática', text: 'Boleto e Pix com lembrete por e-mail e WhatsApp (integração Asaas).' },
@@ -14,6 +15,7 @@ const ROADMAP = [
 
 export function Plans() {
   const { state, dispatch } = useStore();
+  const toast = useToast();
   const [cars, setCars] = useState(Math.max(1, state.vehicles.filter((v) => v.ws === 'frota').length));
 
   const exportJson = () => {
@@ -88,8 +90,11 @@ export function Plans() {
         <p className="small muted">Neste MVP tudo fica salvo só neste navegador.</p>
         <div className="btn-grid">
           <button className="btn btn-ghost" onClick={exportJson}><Download size={16} /> Exportar backup</button>
-          <button className="btn btn-ghost" onClick={() => { if (confirm('Restaurar os dados de exemplo? Suas alterações serão perdidas.')) dispatch({ type: 'reset' }); }}>
+          <button className="btn btn-ghost" onClick={() => { const before = state; dispatch({ type: 'reset', state: demoState(state.ws) }); toast('Dados de exemplo carregados', before); }}>
             <RotateCcw size={16} /> Dados de exemplo
+          </button>
+          <button className="btn btn-danger-ghost" style={{ gridColumn: '1 / -1' }} onClick={() => { const before = state; dispatch({ type: 'reset', state: emptyState(state.ws) }); toast('Tudo apagado', before); }}>
+            Apagar tudo e começar do zero
           </button>
         </div>
       </div>

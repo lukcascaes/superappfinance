@@ -31,10 +31,19 @@ export interface Entry {
   /** YYYY-MM of the first occurrence. */
   startMonth: string;
   repeat: Repeat;
-  /** Number of installments when repeat === 'installments'. */
+  /** Total number of installments when repeat === 'installments'. */
   installments?: number;
+  /** Installments already elapsed before startMonth (after a "this and future" split). */
+  installmentOffset?: number;
+  /** Last month (inclusive) this rule produces an occurrence. */
+  endMonth?: string;
+  /** Months excluded from this rule ("only this month" edits/deletes). */
+  skip?: string[];
   vehicleId?: string;
 }
+
+/** Which occurrences an edit or delete of a recurring entry applies to. */
+export type Scope = 'only' | 'future' | 'all';
 
 export interface Vehicle {
   id: string;
@@ -59,6 +68,10 @@ export interface State {
   vehicles: Vehicle[];
   /** Keys `${entryId}@${YYYY-MM}` marked as paid/received. */
   paid: Record<string, true>;
+  /** First-run choice done. Missing on data saved before onboarding existed. */
+  onboarded?: boolean;
+  /** Showing the sample data set. */
+  demo?: boolean;
 }
 
 export interface Occurrence {

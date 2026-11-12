@@ -1,6 +1,6 @@
-import { CarFront, Gauge, Plus, UserRound } from 'lucide-react';
+import { CarFront, Gauge, Plus, Send, UserRound } from 'lucide-react';
 import { Empty, Plate, Progress } from '../components/ui';
-import { maintenance, occurrences, summarize, vehicleSummary } from '../lib/finance';
+import { maintenance, occurrences, rentStatus, summarize, vehicleSummary, waLink, type RentStatus } from '../lib/finance';
 import { brl, km } from '../lib/format';
 import { useStore } from '../lib/store';
 import type { Vehicle } from '../lib/types';
@@ -40,8 +40,11 @@ export function Fleet({ openVehicle, newVehicle }: { openVehicle: (v: Vehicle) =
           {vehicles.map((v) => {
             const m = maintenance(v);
             const s = vehicleSummary(occs, v.id);
+            const rent = rentStatus(occs, v.id, state.month);
             return (
-              <button key={v.id} className="veh-card" onClick={() => openVehicle(v)} style={{ ['--car' as string]: v.color }}>
+              <div key={v.id} className="veh-card" role="button" tabIndex={0} onClick={() => openVehicle(v)}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openVehicle(v))}
+                style={{ ['--car' as string]: v.color }}>
                 <div className="veh-top">
                   <Plate plate={v.plate} small />
                   <span className={`tag tag-${m.status}`}>{m.status === 'ok' ? 'em dia' : m.status === 'soon' ? 'revisão' : 'vencida'}</span>
@@ -59,15 +62,42 @@ export function Fleet({ openVehicle, newVehicle }: { openVehicle: (v: Vehicle) =
                   <span className="muted">próx. {km(m.next)}</span>
                 </div>
                 <Progress value={m.pct} tone={m.status} />
+                {rent.kind !== 'none' && (
+                  <div className={`rent rent-${rent.kind}`}>
+                    <span className="rent-dot" />
+                    <span className="grow">{rentText(rent)}</span>
+                    {rent.kind !== 'paid' && (
+                      <a className="rent-cta" target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}
+                        href={waLink(v.renterPhone, rentMessage(v.renterName, v.name, rent))}>
+                        <Send size={13} /> Cobrar
+                      </a>
+                    )}
+                  </div>
+                )}
                 <div className="veh-foot">
                   <span className="muted small">No mês</span>
                   <strong className={s.result >= 0 ? 'pos' : 'neg'}>{brl(s.result)}</strong>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
       )}
     </div>
   );
+}
+
+function rentText(r: RentStatus) {
+  if (r.kind === 'paid') return `Aluguel pago · ${brl(r.amount)}`;
+  if (r.kind === 'late') return `Atrasado ${r.days} ${r.days === 1 ? 'dia' : 'dias'} · ${brl(r.amount)}`;
+  if (r.kind === 'due') return r.inDays === 0 ? `Vence hoje · ${brl(r.amount)}` : `Vence dia ${r.day} · ${brl(r.amount)}`;
+  return '';
+}
+
+function rentMessage(renter: string | undefined, car: string, r: RentStatus) {
+  if (r.kind === 'none' || r.kind === 'paid') return '';
+  const hi = `Olá${renter ? ` ${renter.split(' ')[0]}` : ''}!`;
+  return r.kind === 'late'
+    ? `${hi} O aluguel do ${car} (${brl(r.amount)}) venceu dia ${r.day} e ainda não consta como pago. Consegue acertar hoje? Obrigado! 🍀`
+    : `${hi} Lembrete do aluguel do ${car}: ${brl(r.amount)} com vencimento dia ${r.day}. Obrigado! 🍀`;
 }

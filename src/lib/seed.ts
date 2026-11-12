@@ -36,7 +36,7 @@ export function seedState(): State {
     e(F, 'in', 'Saldo anterior', 5840.3, 'saldo', 25, 'once'),
     e(F, 'in', 'Aluguel C4 cinza', 2190, 'aluguel', 19, 'monthly', undefined, 'c4c'),
     e(F, 'in', 'Aluguel C4 preto', 2150, 'aluguel', 17, 'monthly', undefined, 'c4p'),
-    e(F, 'in', 'Aluguel Ka branco', 1200, 'aluguel', 19, 'monthly', undefined, 'kab'),
+    e(F, 'in', 'Aluguel Ka branco', 1200, 'aluguel', 8, 'monthly', undefined, 'kab'),
     e(F, 'in', 'Aluguel Ka preto', 1950, 'aluguel', 19, 'monthly', undefined, 'kap'),
     e(F, 'in', 'Aluguel Polo', 1800, 'aluguel', 18, 'monthly', undefined, 'polo'),
     e(F, 'in', 'Aluguel Voyage', 1650, 'aluguel', 19, 'monthly', undefined, 'voy'),
@@ -84,6 +84,7 @@ export function seedState(): State {
   const paid: State['paid'] = {};
   const todayDay = new Date().getDate();
   for (const en of entries) {
+    if (en.vehicleId === 'kab' && en.kind === 'in') continue; // demo: one rent left open
     if (en.day <= todayDay - 1 || (en.ws === 'frota' && en.kind === 'in' && en.day < 20)) paid[`${en.id}@${month}`] = true;
   }
 

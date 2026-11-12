@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
+import { applyEdit, deleteScoped } from './finance';
+import { currentMonth, uid } from './format';
 import { seedState } from './seed';
-import type { Entry, State, Vehicle, Workspace } from './types';
+import type { Entry, Scope, State, Vehicle, Workspace } from './types';
 
 const KEY = 'luckyzortsfinance:v1';
 
@@ -8,11 +10,17 @@ type Action =
   | { type: 'setWs'; ws: Workspace }
   | { type: 'setMonth'; month: string }
   | { type: 'upsertEntry'; entry: Entry }
-  | { type: 'deleteEntry'; id: string }
+  | { type: 'editEntry'; original: Entry; draft: Entry; scope: Scope }
+  | { type: 'deleteEntry'; entry: Entry; scope: Scope }
   | { type: 'togglePaid'; key: string }
   | { type: 'upsertVehicle'; vehicle: Vehicle }
   | { type: 'deleteVehicle'; id: string }
   | { type: 'reset'; state?: State };
+
+export const demoState = (ws: Workspace = 'frota'): State => ({ ...seedState(), ws, demo: true, onboarded: true });
+export const emptyState = (ws: Workspace): State => ({
+  version: 1, ws, month: currentMonth(), entries: [], vehicles: [], paid: {}, demo: false, onboarded: true,
+});
 
 function upsert<T extends { id: string }>(list: T[], item: T) {
   return list.some((x) => x.id === item.id) ? list.map((x) => (x.id === item.id ? item : x)) : [...list, item];
@@ -26,8 +34,10 @@ function reducer(s: State, a: Action): State {
       return { ...s, month: a.month };
     case 'upsertEntry':
       return { ...s, entries: upsert(s.entries, a.entry) };
+    case 'editEntry':
+      return applyEdit(s, a.original, a.draft, a.scope, s.month, uid());
     case 'deleteEntry':
-      return { ...s, entries: s.entries.filter((e) => e.id !== a.id) };
+      return deleteScoped(s, a.entry, a.scope, s.month);
     case 'togglePaid': {
       const paid = { ...s.paid };
       if (paid[a.key]) delete paid[a.key];
@@ -43,7 +53,7 @@ function reducer(s: State, a: Action): State {
         entries: s.entries.map((e) => (e.vehicleId === a.id ? { ...e, vehicleId: undefined } : e)),
       };
     case 'reset':
-      return a.state ?? seedState();
+      return a.state ?? demoState(s.ws);
   }
 }
 
@@ -52,12 +62,13 @@ function load(): State {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw) as State;
-      if (s.version === 1) return s;
+      // Data saved before onboarding existed: keep it, skip the first-run screen.
+      if (s.version === 1) return { ...s, onboarded: s.onboarded ?? true };
     }
   } catch {
     /* ignore */
   }
-  return seedState();
+  return { ...seedState(), demo: true, onboarded: false };
 }
 
 const Ctx = createContext<{ state: State; dispatch: React.Dispatch<Action> } | null>(null);
